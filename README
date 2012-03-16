@@ -1,0 +1,9 @@
+Arya: Automatic Recorder of Your Activities
+
+Arya is a simple Gnome 3 Shell extension that adds up how much time you spend
+using each of your applications. It's not very fully featured yet, but in the
+future it will hopefully be a useful extension.
+
+Planned Features (I hope):
+* Pretty graphs to show app usage over time
+* Activity level monitoring to suggest when you should take a break
