@@ -22,10 +22,10 @@ function ActivityRecorder() {
 }
 
 ActivityRecorder.prototype = {
-	__proto__: PanelMenu.Button.prototype,
+  __proto__: PanelMenu.Button.prototype,
 
   _init: function() {
-		PanelMenu.Button.prototype._init.call(this, St.Align.START);
+    PanelMenu.Button.prototype._init.call(this, St.Align.START);
 
     this.button = new St.Bin({
       style_class: 'panel-button',
@@ -43,12 +43,12 @@ ActivityRecorder.prototype = {
 
     this.button.set_child(icon);
 
-		this.actor.add_actor(this.button);
+    this.actor.add_actor(this.button);
 
     // Setup state
     this._usage = {};
     this._updateState();
-	},
+  },
 
   // Recalculate the menu which shows time for each app
   _refresh: function() {
@@ -97,23 +97,23 @@ ActivityRecorder.prototype = {
     this._usage[this._curr_app] = (this._usage[this._curr_app] || 0) + mins;
   },
 
-	enable: function() {
+  enable: function() {
     // Add menu to panel
-		Main.panel._rightBox.insert_actor(this.actor, 0);
-		Main.panel._menus.addMenu(this.menu);
+    Main.panel._rightBox.insert_actor(this.actor, 0);
+    Main.panel._menus.addMenu(this.menu);
 
     // Connect to the tracker
     let tracker = Shell.WindowTracker.get_default();
     tracker.connect("notify::focus-app", Lang.bind(this, this._onFocusChanged));
-	},
+  },
 
-	disable: function() {
+  disable: function() {
     // Remove menu from panel
-		Main.panel._menus.removeMenu(this.menu);
-		Main.panel._rightBox.remove_actor(this.actor);
+    Main.panel._menus.removeMenu(this.menu);
+    Main.panel._rightBox.remove_actor(this.actor);
 
     // Remove tracker
     let tracker = Shell.WindowTracker.get_default();
     tracker.disconnect(this._onFocusChanged);
-	}
+  }
 }
