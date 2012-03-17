@@ -53,25 +53,28 @@ ActivityRecorder.prototype = {
   // Recalculate the menu which shows time for each app
   _refresh: function() {
     this._recordTime();
-    this.menu.removeAll();
 
-    for(let app in this._usage) {
-      let str = app + ": " + Math.round(this._usage[app], 2) + " minutes";
-      this.menu.addMenuItem(new PopupMenu.PopupMenuItem(str));
-    }
+    let menu = this.menu;
+    menu.removeAll();
+
+    let usage = this._usage
+    let apps = Object.keys(usage).sort(function(x,y) { return (usage[y] - usage[x]) })
+
+    apps.forEach(function(app) {
+      let str = app + ": " + Math.round(usage[app]) + " minutes";
+      menu.addMenuItem(new PopupMenu.PopupMenuItem(str));
+    });
   },
 
   // Callback for when app focus changes
   _onFocusChanged: function() {
-    this._recordTime();
-    this._updateState();
     this._refresh();
+    this._updateState();
   },
 
   // Update the current app and touch the swap time
   _updateState: function() {
     this._curr_app = this._getCurrentAppName();
-    this._swap_time = Date.now();
   },
 
   // Get the name of the current app or null
@@ -88,12 +91,15 @@ ActivityRecorder.prototype = {
 
   // Update the total time for the current app
   _recordTime: function() {
+    let swap_time = this._swap_time;
+    this._swap_time = Date.now();
+
     // No previous app
     if(this._curr_app == null) {
       return;
     }
 
-    let mins = (Date.now() - this._swap_time) / 1000 / 60;
+    let mins = (Date.now() - swap_time) / 1000 / 60;
     this._usage[this._curr_app] = (this._usage[this._curr_app] || 0) + mins;
   },
 
