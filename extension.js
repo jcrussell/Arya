@@ -66,11 +66,17 @@ ActivityRecorder.prototype = {
     let usage = this._usage
     let apps = Object.keys(usage).sort(function(x,y) { return (usage[y] - usage[x]) })
 
+    let count = 0;
     apps.forEach(function(app) {
       if(usage[app] < 1) return;
+      count += 1;
       let str = app + ": " + Math.round(usage[app]) + " minutes";
       menu.addMenuItem(new PopupMenu.PopupMenuItem(str));
     });
+
+    if(count == 0) {
+      menu.addMenuItem(new PopupMenu.PopupMenuItem("Insufficient History... check in a few minutes"));
+    }
   },
 
   // Callback for when app focus changes
