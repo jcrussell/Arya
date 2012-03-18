@@ -4,13 +4,12 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Shell = imports.gi.Shell;
 const St = imports.gi.St;
+const ScreenSaver = imports.misc.screenSaver;
 
 /**
  * TODO:
  * * Save/Load to/from a file
- * * Disable when the screensaver is active
  * * Add interface to see pretty graphs over time
- * * Sort apps based on total time or alphabetically
  */
 
 function init() {
@@ -25,6 +24,7 @@ ActivityRecorder.prototype = {
   __proto__: PanelMenu.Button.prototype,
 
   _init: function() {
+    // Setup the menu button
     PanelMenu.Button.prototype._init.call(this, St.Align.START);
 
     this.button = new St.Bin({
@@ -42,8 +42,14 @@ ActivityRecorder.prototype = {
     });
 
     this.button.set_child(icon);
-
     this.actor.add_actor(this.button);
+
+    // Refresh the menu (with updated times) every time it opens
+    this.menu.connect('open-state-changed', Lang.bind(this, this._onMenuOpenStateChanged));
+
+    // Add Listener for screensaver
+    this._screenSaverProxy = new ScreenSaver.ScreenSaverProxy();
+    this._screenSaverProxy.connect('ActiveChanged', Lang.bind(this, this._onScreenSaverChanged));
 
     // Setup state
     this._usage = {};
@@ -61,6 +67,7 @@ ActivityRecorder.prototype = {
     let apps = Object.keys(usage).sort(function(x,y) { return (usage[y] - usage[x]) })
 
     apps.forEach(function(app) {
+      if(usage[app] < 1) return;
       let str = app + ": " + Math.round(usage[app]) + " minutes";
       menu.addMenuItem(new PopupMenu.PopupMenuItem(str));
     });
@@ -70,6 +77,23 @@ ActivityRecorder.prototype = {
   _onFocusChanged: function() {
     this._refresh();
     this._updateState();
+  },
+
+  // Callback for when screensaver state changed
+  _onScreenSaverChanged: function(object, isActive) {
+    if(!isActive) { // Changed from screen saver to awake
+      this._swap_time = Date.now();
+    }
+    else { // Changed from awake to screen saver
+      this._recordTime();
+    }
+  },
+
+  // Callback for when the menu is opened or closed
+  _onMenuOpenStateChanged: function(menu, isOpen) {
+    if(isOpen) { // Changed from closed to open
+      this._refresh();
+    }
   },
 
   // Update the current app and touch the swap time
