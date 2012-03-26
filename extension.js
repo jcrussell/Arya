@@ -6,6 +6,8 @@ const Shell = imports.gi.Shell;
 const St = imports.gi.St;
 const ScreenSaver = imports.misc.screenSaver;
 
+const APPMENU_ICON_SIZE = 22;
+
 /**
  * TODO:
  * * Save/Load to/from a file
@@ -63,19 +65,24 @@ ActivityRecorder.prototype = {
     let menu = this.menu;
     menu.removeAll();
 
-    let usage = this._usage
-    let apps = Object.keys(usage).sort(function(x,y) { return (usage[y] - usage[x]) })
+    let usage = this._usage;
+    let ids = Object.keys(usage).sort(function(x,y) { return (usage[y] - usage[x]) });
+    let app_system = Shell.AppSystem.get_default();
 
     let count = 0;
-    apps.forEach(function(app) {
-      if(usage[app] < 1) return;
-      count += 1;
-      let str = app + ": " + Math.round(usage[app]) + " minutes";
-      menu.addMenuItem(new PopupMenu.PopupMenuItem(str));
+    ids.forEach(function(id) {
+      if(usage[id] < 1) return;
+      let app = app_system.lookup_app(id);
+      if(app) {
+        count += 1;
+        let icon = app.create_icon_texture(APPMENU_ICON_SIZE);
+        let str = app.get_name() + ": " + Math.round(usage[id]) + " minutes";
+        menu.addMenuItem(new MyPopupMenuItem(icon, str, false));
+      }
     });
 
     if(count == 0) {
-      menu.addMenuItem(new PopupMenu.PopupMenuItem("Insufficient History... check in a few minutes"));
+      menu.addMenuItem(new PopupMenu.PopupMenuItem("Insufficient History... get to work!"));
     }
   },
 
@@ -104,11 +111,11 @@ ActivityRecorder.prototype = {
 
   // Update the current app and touch the swap time
   _updateState: function() {
-    this._curr_app = this._getCurrentAppName();
+    this._curr_app = this._getCurrentAppId();
   },
 
-  // Get the name of the current app or null
-  _getCurrentAppName: function() {
+  // Get the current app or null
+  _getCurrentAppId: function() {
     let tracker = Shell.WindowTracker.get_default();
     let focusedApp = tracker.focus_app;
     // Not an application window
@@ -116,7 +123,7 @@ ActivityRecorder.prototype = {
       return null;
     }
 
-    return focusedApp.get_name();
+    return focusedApp.get_id();
   },
 
   // Update the total time for the current app
@@ -153,3 +160,31 @@ ActivityRecorder.prototype = {
     tracker.disconnect(this._onFocusChanged);
   }
 }
+
+/**
+ * From: http://blog.fpmurphy.com/2011/05/more-gnome-shell-customization.html
+ */
+function MyPopupMenuItem() {
+  this._init.apply(this, arguments);
+}
+
+MyPopupMenuItem.prototype = {
+  __proto__: PopupMenu.PopupBaseMenuItem.prototype,
+
+  _init: function(icon, text, menu_icon_first, params) {
+    PopupMenu.PopupBaseMenuItem.prototype._init.call(this, params);
+
+    this.label = new St.Label({ text: text });
+
+    if(menu_icon_first) {
+      this.box = new St.BoxLayout({ style_class: 'applications-menu-box'});
+      this.box.add(icon);
+      this.box.add(this.label);
+      this.addActor(this.box);
+    }
+    else {
+      this.addActor(this.label);
+      this.addActor(icon);
+    }
+  }
+};
