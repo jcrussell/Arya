@@ -70,19 +70,25 @@ ActivityRecorder.prototype = {
     let app_system = Shell.AppSystem.get_default();
 
     let count = 0;
+    let total = 0;
     ids.forEach(function(id) {
       if(usage[id] < 1) return;
       let app = app_system.lookup_app(id);
       if(app) {
-        count += 1;
+        let mins = Math.round(usage[id]);
         let icon = app.create_icon_texture(APPMENU_ICON_SIZE);
-        let str = app.get_name() + ": " + Math.round(usage[id]) + " minutes";
-        menu.addMenuItem(new MyPopupMenuItem(icon, str, false));
+        let str = makeTimeStrFromMins(mins);
+        menu.addMenuItem(new AppUsageMenuItem(icon, app.get_name(), str));
+        count += 1; total += mins;
       }
     });
 
     if(count == 0) {
       menu.addMenuItem(new PopupMenu.PopupMenuItem("Insufficient History... get to work!"));
+    }
+    else { // Add Total
+      menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+      menu.addMenuItem(new TotalUsageMenuItem(makeTimeStrFromMins(total)));
     }
   },
 
@@ -161,30 +167,58 @@ ActivityRecorder.prototype = {
   }
 }
 
+function makeTimeStrFromMins(mins) {
+  if(mins > 60) { // Report usage in hours
+    return Math.round(mins*100/60)/100 + " hours";
+  }
+  if(mins == 1) {
+    return mins + " minute";
+  }
+  else {
+    return mins + " minutes"
+  }
+}
+
+
 /**
  * From: http://blog.fpmurphy.com/2011/05/more-gnome-shell-customization.html
  */
-function MyPopupMenuItem() {
+function AppUsageMenuItem() {
   this._init.apply(this, arguments);
 }
 
-MyPopupMenuItem.prototype = {
+AppUsageMenuItem.prototype = {
   __proto__: PopupMenu.PopupBaseMenuItem.prototype,
 
-  _init: function(icon, text, menu_icon_first, params) {
+  _init: function(icon, text1, text2, params) {
     PopupMenu.PopupBaseMenuItem.prototype._init.call(this, params);
 
-    this.label = new St.Label({ text: text });
+    this.label1 = new St.Label({ text: text1 });
+    this.label2 = new St.Label({ text: text2 });
+    this.icon = icon;
 
-    if(menu_icon_first) {
-      this.box = new St.BoxLayout({ style_class: 'applications-menu-box'});
-      this.box.add(icon);
-      this.box.add(this.label);
-      this.addActor(this.box);
-    }
-    else {
-      this.addActor(this.label);
-      this.addActor(icon);
-    }
+    this.addActor(this.label1);
+    this.addActor(this.icon, { align: St.Align.END });
+    this.addActor(this.label2, { align: St.Align.END });
+  }
+};
+
+function TotalUsageMenuItem() {
+  this._init.apply(this, arguments);
+}
+
+TotalUsageMenuItem.prototype = {
+  __proto__: PopupMenu.PopupBaseMenuItem.prototype,
+
+  _init: function(time, params) {
+    PopupMenu.PopupBaseMenuItem.prototype._init.call(this, params);
+
+    this.label1 = new St.Label({ text: "Total" });
+    this.label2 = new St.Label({ text: "" });
+    this.label3 = new St.Label({ text: time });
+
+    this.addActor(this.label1);
+    this.addActor(this.label2, { align: St.Align.END });
+    this.addActor(this.label3, { align: St.Align.END });
   }
 };
