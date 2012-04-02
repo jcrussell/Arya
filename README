@@ -7,3 +7,8 @@ future it will hopefully be a useful extension.
 Planned Features (I hope):
 * Pretty graphs to show app usage over time
 * Activity level monitoring to suggest when you should take a break
+
+Install Instructions:
+
+0. git clone git@github.com:jcrussell/Arya.git ~/.local/share/gnome-shell/extensions/arya@jcrussell.github.com
+1. Restart gnome-shell: ALT+F2, then enter "r" without quotes or log out and back in
