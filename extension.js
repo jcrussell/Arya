@@ -51,7 +51,7 @@ ActivityRecorder.prototype = {
 
     // Add Listener for screensaver
     this._screenSaverProxy = new ScreenSaver.ScreenSaverProxy();
-    this._screenSaverProxy.connect('ActiveChanged', Lang.bind(this, this._onScreenSaverChanged));
+    this._screenSaverProxy.connectSignal('ActiveChanged', Lang.bind(this, this._onScreenSaverChanged));
 
     // Setup state
     this._usage = {};
@@ -148,7 +148,7 @@ ActivityRecorder.prototype = {
 
   enable: function() {
     // Add menu to panel
-    Main.panel._rightBox.insert_actor(this.actor, 0);
+    Main.panel._rightBox.insert_child_at_index(this.actor, 0);
     Main.panel._menus.addMenu(this.menu);
 
     // Connect to the tracker
