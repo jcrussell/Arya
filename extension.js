@@ -67,10 +67,6 @@ ActivityRecorder.prototype = {
     // Refresh the menu (with updated times) every time it opens
     this.menu.connect('open-state-changed', Lang.bind(this, this._onMenuOpenStateChanged));
 
-    // Add Listener for screensaver
-    this._screenSaverProxy = new ScreenSaver.ScreenSaverProxy();
-    this._screenSaverProxy.connectSignal('ActiveChanged', Lang.bind(this, this._onScreenSaverChanged));
-
     // Setup state
     this._usage = {};
     this._updateState();
@@ -117,7 +113,7 @@ ActivityRecorder.prototype = {
   },
 
   // Callback for when screensaver state changed
-  _onScreenSaverChanged: function(object, isActive) {
+  _onScreenSaverChanged: function(object, senderName, isActive) {
     if(!isActive) { // Changed from screen saver to awake
       this._swap_time = Date.now();
     }
@@ -171,7 +167,11 @@ ActivityRecorder.prototype = {
 
     // Connect to the tracker
     let tracker = Shell.WindowTracker.get_default();
-    tracker.connect("notify::focus-app", Lang.bind(this, this._onFocusChanged));
+    this._tracker_id = tracker.connect("notify::focus-app", Lang.bind(this, this._onFocusChanged));
+
+    // Add Listener for screensaver
+    this._screenSaverProxy = new ScreenSaver.ScreenSaverProxy();
+    this._screensaver_id = this._screenSaverProxy.connectSignal('ActiveChanged', Lang.bind(this, this._onScreenSaverChanged));
   },
 
   disable: function() {
@@ -181,7 +181,9 @@ ActivityRecorder.prototype = {
 
     // Remove tracker
     let tracker = Shell.WindowTracker.get_default();
-    tracker.disconnect(this._onFocusChanged);
+    tracker.disconnect(this._tracker_id);
+
+    this._screenSaverProxy.disconnect(this._screensaver_id);
   }
 }
 
