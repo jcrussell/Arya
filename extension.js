@@ -70,6 +70,7 @@ ActivityRecorder.prototype = {
     // Setup state
     this._usage = {};
     this._updateState();
+    this._swap_time = Date.now();
   },
 
   // Recalculate the menu which shows time for each app
@@ -113,7 +114,7 @@ ActivityRecorder.prototype = {
   },
 
   // Callback for when screensaver state changed
-  _onScreenSaverChanged: function(object, senderName, isActive) {
+  _onScreenSaverChanged: function(object, senderName, [isActive]) {
     if(!isActive) { // Changed from screen saver to awake
       this._swap_time = Date.now();
     }
