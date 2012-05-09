@@ -67,6 +67,10 @@ ActivityRecorder.prototype = {
     // Refresh the menu (with updated times) every time it opens
     this.menu.connect('open-state-changed', Lang.bind(this, this._onMenuOpenStateChanged));
 
+    this._reset();
+  },
+
+  _reset: function() {
     // Setup state
     this._usage = {};
     this._updateState();
@@ -101,9 +105,13 @@ ActivityRecorder.prototype = {
     if(count == 0) {
       menu.addMenuItem(new PopupMenu.PopupMenuItem("Insufficient History... get to work!"));
     }
-    else { // Add Total
+    else { // Add Total and Reset
       menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
       menu.addMenuItem(new TotalUsageMenuItem(makeTimeStrFromMins(total)));
+
+      item = new PopupMenu.PopupMenuItem(_("Clear History"));
+      item.connect('activate', Lang.bind(this, this._reset));
+      this.menu.addMenuItem(item);
     }
   },
 
